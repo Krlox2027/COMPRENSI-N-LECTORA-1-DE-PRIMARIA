@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprensión Lectora - Cuentos Clásicos para Niños</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Fredoka & Quicksand for friendly child-oriented typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        fredoka: ['Fredoka', 'sans-serif'],
+                        quicksand: ['Quicksand', 'sans-serif'],
+                    },
+                    colors: {
+                        brandYellow: '#FFDE59',
+                        brandPink: '#FF66C4',
+                        brandPurple: '#8C52FF',
+                        brandBlue: '#5271FF',
+                        brandGreen: '#7ED957',
+                        brandOrange: '#FF914D',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #F8F9FA;
+            background-image: radial-gradient(#FFDE59 1.5px, transparent 1.5px), radial-gradient(#8C52FF 1.5px, #F8F9FA 1.5px);
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
+        }
+        .story-text {
+            font-size: 1.35rem; /* ~21px */
+            line-height: 2.1rem;
+        }
+        .question-text {
+            font-size: 1.25rem; /* ~20px */
+            line-height: 1.8rem;
+        }
+        .option-btn {
+            font-size: 1.15rem; /* ~18px */
+            transition: all 0.2s ease-in-out;
+        }
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-2px) scale(1.01);
+        }
+        .card-bounce:hover {
+            transform: translateY(-5px) scale(1.02);
+        }
+        /* Custom scrollbar for friendly look */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FFF;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #FF914D;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-between pb-8">
+
+    <!-- Header Navigation -->
+    <header class="bg-white/95 backdrop-blur shadow-md sticky top-0 z-50 border-b-4 border-brandPurple">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <button id="btnHome" onclick="showMenu()" class="flex flex-wrap items-center gap-2 text-xl md:text-2xl font-bold font-fredoka text-brandPurple hover:text-brandPink transition">
+                <span>📖</span> Cuentos Mágicos <span class="text-xs md:text-base font-normal text-slate-600">con el profesor Carlos Huancaya Matos</span>
+            </button>
+            <div id="statsNav" class="hidden flex items-center gap-4 bg-amber-100 border-2 border-amber-300 px-4 py-1.5 rounded-full font-fredoka text-lg">
+                <span class="flex items-center gap-1 text-amber-700">⭐ <span id="totalStars">0</span> Estrellas</span>
+                <span class="text-amber-400">|</span>
+                <span class="flex items-center gap-1 text-emerald-700">🏆 <span id="completedCount">0</span>/10 Cuentos</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-5xl mx-auto px-4 py-6 flex-grow w-full">
+
+        <!-- VISTA 1: MENU DE SELECCION DE CUENTOS -->
+        <section id="menuView" class="block space-y-6">
+            <div class="text-center space-y-3 bg-white p-6 rounded-3xl shadow-lg border-4 border-brandBlue max-w-3xl mx-auto">
+                <h1 class="text-3xl md:text-4xl font-extrabold font-fredoka text-brandBlue flex justify-center items-center gap-2">
+                    ✨ ¡Elige tu cuento favorito! ✨
+                </h1>
+                <p class="text-xl text-slate-600 font-medium">
+                    Lee la historia con mucha atención y responde las 10 preguntas para ganar estrellas. 🌟
+                </p>
+            </div>
+
+            <div id="storiesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
+                <!-- Se genera dinámicamente con JS -->
+            </div>
+        </section>
+
+        <!-- VISTA 2: LECTURA Y PREGUNTAS -->
+        <section id="readingView" class="hidden space-y-8">
+            <!-- Botón Volver -->
+            <div class="flex justify-between items-center">
+                <button onclick="showMenu()" class="bg-white hover:bg-slate-100 text-brandPurple font-fredoka font-semibold px-5 py-2.5 rounded-2xl border-2 border-brandPurple shadow transition flex items-center gap-2 text-lg">
+                    ⬅️ Volver a Cuentos
+                </button>
+                <div id="storyBadge" class="bg-brandYellow text-slate-900 font-fredoka text-lg px-4 py-2 rounded-2xl border-2 border-amber-400 font-bold shadow">
+                    Cuento 1 de 10
+                </div>
+            </div>
+
+            <!-- Tarjeta del Cuento -->
+            <article class="bg-white rounded-3xl p-6 md:p-8 shadow-xl border-4 border-brandPink relative overflow-hidden">
+                <div class="flex items-center gap-4 mb-4 border-b-2 border-pink-100 pb-3">
+                    <span id="storyEmoji" class="text-5xl">📕</span>
+                    <div>
+                        <h2 id="storyTitle" class="text-3xl md:text-4xl font-bold font-fredoka text-brandPink">Título del Cuento</h2>
+                        <span class="text-sm font-semibold text-slate-500 uppercase tracking-wide">Texto adaptado para niños</span>
+                    </div>
+                </div>
+                
+                <!-- Texto del Cuento (Letra grande y legible) -->
+                <div id="storyContent" class="story-text text-slate-700 font-medium space-y-4 text-justify bg-pink-50/50 p-6 rounded-2xl border-2 border-pink-100">
+                    <!-- Contenido dinámico -->
+                </div>
+            </article>
+
+            <!-- Sección de Preguntas (10 preguntas) -->
+            <div class="bg-white rounded-3xl p-6 md:p-8 shadow-xl border-4 border-brandGreen space-y-8">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b-2 border-emerald-100 pb-4">
+                    <div>
+                        <h3 class="text-2xl md:text-3xl font-bold font-fredoka text-brandGreen flex items-center gap-2">
+                            🧠 Cuestionario de Comprensión
+                        </h3>
+                        <p class="text-slate-600 font-medium text-lg">Responde las 10 preguntas seleccionando la opción correcta.</p>
+                    </div>
+                    <div class="bg-emerald-100 text-emerald-800 font-fredoka px-4 py-2 rounded-xl text-lg border border-emerald-300 font-bold">
+                        Puntaje: <span id="currentScore">0</span> / 10
+                    </div>
+                </div>
+
+                <!-- Lista de Preguntas Dinámica -->
+                <div id="questionsContainer" class="space-y-8">
+                    <!-- Preguntas generadas por JS -->
+                </div>
+
+                <!-- Botón de Finalizar / Resultado -->
+                <div id="submitContainer" class="pt-6 border-t-2 border-slate-100 flex flex-col items-center gap-4">
+                    <button id="btnFinish" onclick="calculateStoryResult()" class="w-full sm:w-auto bg-brandGreen hover:bg-emerald-500 text-white font-fredoka text-2xl px-10 py-4 rounded-2xl shadow-lg border-b-4 border-emerald-700 transition active:scale-95 flex items-center justify-center gap-3">
+                        🏆 Comprobar Respuestas
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- VISTA 3: RESUMEN / MEDALLERO FINAL -->
+        <section id="summaryView" class="hidden space-y-6">
+            <div class="bg-white rounded-3xl p-8 shadow-xl border-4 border-brandYellow text-center space-y-6 max-w-2xl mx-auto">
+                <div class="text-6xl animate-bounce">🎉</div>
+                <h2 id="summaryTitle" class="text-3xl md:text-4xl font-extrabold font-fredoka text-slate-800">¡Excelente Trabajo!</h2>
+                
+                <div id="starsDisplay" class="flex justify-center items-center gap-2 text-5xl my-4">
+                    ⭐ ⭐ ⭐
+                </div>
+
+                <p id="summaryText" class="text-2xl font-bold text-brandPurple font-fredoka">
+                    Obtuviste 10 de 10 respuestas correctas.
+                </p>
+
+                <div class="p-4 bg-amber-50 rounded-2xl border-2 border-amber-200 text-slate-700 font-medium text-lg">
+                    ¡Continúa leyendo cuentos para acumular más estrellas y convertirte en un Gran Lector! 📚
+                </div>
+
+                <div class="flex flex-col sm:flex-row justify-center gap-4 pt-4">
+                    <button onclick="showMenu()" class="bg-brandBlue hover:bg-blue-600 text-white font-fredoka text-xl px-8 py-3 rounded-2xl shadow border-b-4 border-blue-800 transition">
+                        🏠 Volver a la Lista de Cuentos
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center text-slate-500 font-medium py-4 text-sm">
+        <p>✨ Aplicación Educativa de Comprensión Lectora para Niños | 10 Cuentos Clásicos ✨</p>
+    </footer>
+
+    <!-- LOGICA EN JAVASCRIPT -->
+    <script>
+        // BASE DE DATOS DE LOS 10 CUENTOS CON SUS 10 PREGUNTAS CADA UNO
+        const storiesData = [
+            {
+                id: 1,
+                title: "Caperucita Roja",
+                emoji: "🐺",
+                color: "bg-red-500",
+                borderColor: "border-red-400",
+                text: "Había una vez una amable niña a la que todos llamaban Caperucita Roja porque siempre llevaba una caperuza de color rojo que le regaló su abuelita. Un día, su mamá le pidió que llevara una canasta con pan, miel y frutas a la casa de la abuelita, quien estaba enferma. Su mamá le advirtió: 'No te salgas del camino ni hables con extraños'. En el bosque, Caperucita se encontró con un lobo feroz. El lobo, haciendo como si fuera simpático, le preguntó a dónde iba. Caperucita le contó que iba a ver a su abuelita. El lobo la engañó y le sugirió tomar un camino más largo mientras él corría por el más corto. El lobo llegó antes a la casa de la abuelita, la encerró en el armario y se vistió con su ropa para esperar a Caperucita. Cuando la niña llegó, notó algo raro y dijo: '¡Qué orejas tan grandes tienes!'. El lobo respondió: '¡Son para oírte mejor!'. Luego preguntó por sus ojos y su boca grande, hasta que el lobo saltó de la cama. Por suerte, un leñador muy valiente escuchó los gritos, entró rápidamente a la casa, asustó al lobo y salvó a la abuelita y a Caperucita. Desde ese día, Caperucita aprendió a obedecer siempre los consejos de su mamá.",
+                questions: [
+                    { q: "¿Por qué llamaban a la niña Caperucita Roja?", options: ["Porque le gustaban las manzanas rojas", "Porque siempre usaba una caperuza roja", "Porque pintaba con color rojo", "Porque sus zapatos eran rojos"], answer: 1 },
+                    { q: "¿Quién le regaló la caperuza roja?", options: ["Su mamá", "El leñador", "Su abuelita", "El lobo"], answer: 2 },
+                    { q: "¿Qué llevaba Caperucita en la canasta?", options: ["Pan, miel y frutas", "Juguetes y chocolates", "Libros y cuadernos", "Ropa nueva"], answer: 0 },
+                    { q: "¿A quién iba a visitar Caperucita?", options: ["A su tía", "A su abuelita enferma", "A su amiga", "Al leñador"], answer: 1 },
+                    { q: "¿Qué consejo le dio su mamá?", options: ["Que corra muy rápido", "Que le dé comida al lobo", "Que no hable con extraños ni se salga del camino", "Que regrese antes del mediodía"], answer: 2 },
+                    { q: "¿Con quién se encontró en el bosque?", options: ["Con un perro", "Con un lobo feroz", "Con un oso", "Con un conejo"], answer: 1 },
+                    { q: "¿Qué hizo el lobo para engañar a Caperucita?", options: ["Le regaló flores", "Le enseñó un camino más largo", "Le cantó una canción", "Se echó a dormir"], answer: 1 },
+                    { q: "¿Dónde encerró el lobo a la abuelita?", options: ["En la cocina", "En el granero", "En el armario", "Debajo de la cama"], answer: 2 },
+                    { q: "¿Quién salvó a Caperucita y a su abuelita?", options: ["Un leñador valiente", "Un cazador de pájaros", "Su mamá", "Un policía"], answer: 0 },
+                    { q: "¿Qué lección aprendió Caperucita?", options: ["Que debe comer más rápido", "Que debe obedecer siempre a su mamá", "Que no debe ir al bosque a jugar", "Que los lobos son amistosos"], answer: 1 }
+                ]
+            },
+            {
+                id: 2,
+                title: "Los Tres Cerditos",
+                emoji: "🐷",
+                color: "bg-pink-500",
+                borderColor: "border-pink-400",
+                text: "En un lindo bosque vivían tres hermanitos cerditos. Para protegerse del lobo feroz, decidieron construir sus propias casas. El cerdito menor, que era un poco perezoso, construyó rápidamente su casa de paja para irse a jugar pronto. El cerdito mediano construyó su casa de madera, que era un poco más fuerte. El cerdito mayor, que era muy trabajador y paciente, dedicó tiempo y esfuerzo a construir una sólida casa de ladrillos y cemento. Un día llegó el lobo soplador. Fue a la casa de paja y sopló con fuerza: '¡Soplaré y soplaré y tu casa derribaré!'. La casa de paja cayó y el cerdito corrió a la casa de madera. El lobo los siguió y sopló más fuerte hasta derrumbar la casa de madera. Los dos hermanitos asustados corrieron a la casa de ladrillos de su hermano mayor. El lobo sopló y sopló con todas sus fuerzas, pero la casa de ladrillos no se movió ni un poquito. El lobo intentó entrar por la chimenea, pero cayó en una olla de agua caliente y huyó corriendo para no volver jamás. Los cerditos aprendieron que con esfuerzo y trabajo duro se obtienen mejores resultados.",
+                questions: [
+                    { q: "¿Cuántos cerditos eran en la historia?", options: ["Dos", "Tres", "Cuatro", "Cinco"], answer: 1 },
+                    { q: "¿De qué construyó su casa el cerdito menor?", options: ["De madera", "De ladrillos", "De paja", "De cartón"], answer: 2 },
+                    { q: "¿De qué material era la casa del cerdito mediano?", options: ["De piedra", "De paja", "De madera", "De cristal"], answer: 2 },
+                    { q: "¿Cómo era el cerdito mayor?", options: ["Perezoso y juguetón", "Trabajador y paciente", "Asustadizo", "Muy distraído"], answer: 1 },
+                    { q: "¿Por qué el cerdito menor hizo su casa de paja?", options: ["Porque no tenía más materiales", "Para terminar rápido e irse a jugar", "Porque le gustaba el color amarillo", "Porque el lobo se lo pidió"], answer: 1 },
+                    { q: "¿Qué hacía el lobo para derribar las casas?", options: ["Empujaba la puerta", "Usaba un martillo", "Soplaba muy fuerte", "Lanzaba piedras"], answer: 2 },
+                    { q: "¿Qué casa resistió los soplidos del lobo?", options: ["La casa de paja", "La casa de madera", "La casa de ladrillos", "Ninguna casa"], answer: 2 },
+                    { q: "¿Por dónde intentó entrar el lobo a la tercera casa?", options: ["Por la ventana", "Por la chimenea", "Por la puerta trasera", "Haciendo un hoyo"], answer: 1 },
+                    { q: "¿Dónde cayó el lobo al bajar por la chimenea?", options: ["En una cama suave", "En una olla de agua caliente", "En un montón de paja", "En una caja de juguetes"], answer: 1 },
+                    { q: "¿Qué enseñanza deja este cuento?", options: ["Es mejor jugar todo el día", "El trabajo hecho con esfuerzo da buenos resultados", "Las casas de madera son las mejores", "Hay que soplar muy fuerte"], answer: 1 }
+                ]
+            },
+            {
+                id: 3,
+                title: "Ricitos de Oro",
+                emoji: "🐻",
+                color: "bg-amber-500",
+                borderColor: "border-amber-400",
+                text: "Ricitos de Oro era una niña muy curiosa con un hermoso cabello rubio y rizado. Caminando por el bosque, encontró una casita con la puerta abierta. En esa casa vivía una familia de tres osos: el Oso Grande, la Osa Mediana y el Osito Pequeño. Como no había nadie, Ricitos entró. En la mesa vio tres platos de sopa. Probó el plato grande, pero estaba demasiado caliente. Probó el mediano, pero estaba muy frío. Probó el plato pequeño y le pareció perfecto, ¡así que se lo comió todo! Luego quiso descansar. Probó la silla grande, pero era muy dura. Probó la silla mediana, pero era muy suave. Probó la silla pequeña, que era perfecta, pero de tanto columpiarse la rompió. Ricitos subió al dormitorio y probó las camas. La camita pequeña era la más cómoda y se quedó dormida. Cuando los tres osos regresaron y vieron lo sucedido, el Osito Pequeño exclamó: '¡Alguien está en mi cama!'. Ricitos se despertó asustada, vio a los tres osos y salió corriendo de la casa, prometiendo no volver a entrar en casas ajenas sin permiso.",
+                questions: [
+                    { q: "¿Cómo era el cabello de la niña?", options: ["Liso y negro", "Corto y castaño", "Rubio y rizado", "Rojo y largo"], answer: 2 },
+                    { q: "¿Quiénes vivían en la casita del bosque?", options: ["Tres duendes", "Tres osos", "Tres conejitos", "Una abuelita"], answer: 1 },
+                    { q: "¿Cuántos platos de sopa había en la mesa?", options: ["Uno", "Dos", "Tres", "Cuatro"], answer: 2 },
+                    { q: "¿Por qué no se comió la sopa del plato grande?", options: ["Porque estaba fría", "Porque estaba demasiado caliente", "Porque tenía verduras", "Porque picaba mucho"], answer: 1 },
+                    { q: "¿Qué plato de sopa se comió por completo?", options: ["El plato grande", "El plato mediano", "El plato pequeño", "Ninguno"], answer: 2 },
+                    { q: "¿Qué le pasó a la silla pequeña del Osito?", options: ["Se la llevó a su casa", "La pintó de azul", "Se rompió al usarla", "Le pareció muy alta"], answer: 2 },
+                    { q: "¿En qué cama se quedó dormida Ricitos de Oro?", options: ["En la gran cama del Oso Grande", "En la cama de la Osa Mediana", "En la camita del Osito Pequeño", "En el sofá"], answer: 2 },
+                    { q: "¿Cómo reaccionaron los osos al volver?", options: ["Se alegraron mucho", "Notaron que alguien tocó sus cosas", "Hicieron una fiesta", "No se dieron cuenta de nada"], answer: 1 },
+                    { q: "¿Qué hizo Ricitos al despertar y ver a los osos?", options: ["Les cantó una canción", "Les pidió más sopa", "Se asustó y salió corriendo", "Se volvió a dormir"], answer: 2 },
+                    { q: "¿Qué lección aprendió Ricitos de Oro?", options: ["No romper sillas", "No entrar en casas ajenas sin permiso", "Comer la sopa caliente", "Pincharse el cabello"], answer: 1 }
+                ]
+            },
+            {
+                id: 4,
+                title: "El Patito Feo",
+                emoji: "🦆",
+                color: "bg-teal-500",
+                borderColor: "border-teal-400",
+                text: "En una bonita granja, una mamá pato esperaba con ilusión el nacimiento de sus patitos. Uno a uno rompen el cascarón, pero el último huevo, que era el más grande, tardó más. Cuando finalmente nació, el patito era más grande, gris y diferente a sus hermanitos. En la granja, los otros animales se burlaban de él y lo llamaban 'El Patito Feo'. El pobrecito patito se sentía muy triste y solo, por lo que decidió marcharse en busca de un lugar donde lo aceptaran. Pasó un otoño frío y un largo invierno pasando muchas dificultades y escondiéndose de las heladas. Cuando llegó la primavera, el patito vio reflejada su imagen en un estanque transparente. Para su gran sorpresa, ya no era un patito feo y torpe: ¡se había transformado en un hermoso y elegante cisne blanco! De pronto, otros majestuosos cisnes se acercaron para darle la bienvenida al grupo. El patito entendió que la verdadera belleza está en el interior y que el valor de cada uno brilla a su debido tiempo.",
+                questions: [
+                    { q: "¿Dónde nació el patito?", options: ["En el mar", "En una granja", "En una selva", "En un zoológico"], answer: 1 },
+                    { q: "¿Cómo era el último huevo en nacer?", options: ["El más pequeño", "El más brillante", "El más grande", "De color azul"], answer: 2 },
+                    { q: "¿Por qué se burlaban del patito?", options: ["Porque no sabía cantar", "Porque era diferente y grande", "Porque corría muy rápido", "Porque era muy peleador"], answer: 1 },
+                    { q: "¿Cómo se sentía el patito ante las burlas?", options: ["Feliz", "Orgulloso", "Triste y solo", "Enojado"], answer: 2 },
+                    { q: "¿Qué decisión tomó el patito?", options: ["Quedarse en la granja para siempre", "Irse en busca de un lugar donde lo aceptaran", "Pintarse de color amarillo", "Ocultarse en un establo"], answer: 1 },
+                    { q: "¿Qué estación del año fue muy dura para él?", options: ["El verano caliente", "El invierno frío", "La primavera florida", "El otoño soleado"], answer: 1 },
+                    { q: "¿Dónde vio reflejada su imagen al llegar la primavera?", options: ["En un espejo de cristal", "En una ventana", "En un estanque transparente", "En un charco de lodo"], answer: 2 },
+                    { q: "¿En qué ave hermosa se había convertido?", options: ["En un águila", "En un cisne blanco", "En un flamenco rosa", "En un pavo real"], answer: 1 },
+                    { q: "¿Quiénes se acercaron a darle la bienvenida?", options: ["Los patos de la granja", "Otros majestuosos cisnes", "Los perros de la granja", "Los pajaritos del árbol"], answer: 1 },
+                    { q: "¿Qué mensaje importante nos enseña esta historia?", options: ["Que debemos juzgar a todos por su apariencia", "Que la verdadera belleza y valor de cada uno brilla con el tiempo", "Que hay que correr en invierno", "Que los cisnes no nadan"], answer: 1 }
+                ]
+            },
+            {
+                id: 5,
+                title: "Pinocho",
+                emoji: "🪵",
+                color: "bg-blue-500",
+                borderColor: "border-blue-400",
+                text: "Gepetto era un amable carpintero que construyó una marioneta de madera y la llamó Pinocho. Gepetto deseaba con todo su corazón que Pinocho fuera un niño de verdad. Un Hada Azul escuchó su deseo y le dio vida a la marioneta, dejándole al Pepito Grillo como su conciencia para guiarlo hacia el bien. El Hada le dijo que para convertirse en un niño de carne y hueso, debía ser honesto, obediente y estudioso. Sin embargo, Pinocho era desobediente. De camino a la escuela se distraía fácilmente y decía mentiras. Cada vez que Pinocho decía una mentira, ¡su nariz de madera crecía y crecía! Tras meterse en varios problemas y arrepentirse sinceramente, Pinocho descubrió que su padre Gepetto había sido tragado por una enorme ballena mientras lo buscaba en el mar. Sin dudarlo, Pinocho se lanzó al agua, entró a la ballena y con mucha astucia ayudó a escapar a Gepetto. Viendo su valentía y noble corazón, el Hada Azul transformó a Pinocho en un niño de verdad.",
+                questions: [
+                    { q: "¿A qué se dedicaba Gepetto?", options: ["Era zapatero", "Era carpintero", "Era cocinero", "Era marinero"], answer: 1 },
+                    { q: "¿De qué material estaba hecho Pinocho al principio?", options: ["De plástico", "De barro", "De madera", "De metal"], answer: 2 },
+                    { q: "¿Quién le dio vida a la marioneta?", options: ["Un rey magó", "El Hada Azul", "Pepito Grillo", "Gepetto con un hechizo"], answer: 1 },
+                    { q: "¿Quién acompañaba a Pinocho como su conciencia?", options: ["Un perro fiel", "Pepito Grillo", "Un pájaro sabio", "Un gato parlante"], answer: 1 },
+                    { q: "¿Qué le pasaba a la nariz de Pinocho cuando mentía?", options: ["Cambiaba de color", "Le salían hojas", "Crecía y crecía", "Se encogía"], answer: 2 },
+                    { q: "¿A dónde debía ir Pinocho todas las mañanas?", options: ["Al parque de atracciones", "A la escuela", "Al taller de madera", "Al mercado"], answer: 1 },
+                    { q: "¿Qué animal grande se tragó a Gepetto?", options: ["Un tiburón gigantesco", "Una enorme ballena", "Un pulpo de mar", "Un cocodrilo"], answer: 1 },
+                    { q: "¿Cómo demostró Pinocho su valentía?", options: ["Ganando una carrera", "Entrando a la ballena para rescatar a su papá", "Construyendo un barco solo", "Estudiando toda la noche"], answer: 1 },
+                    { q: "¿En qué se convirtió Pinocho al final por ser noble y valiente?", options: ["En un rey", "En un niño de verdad", "En un muñeco de oro", "En un gran maestro"], answer: 1 },
+                    { q: "¿Qué importante lección nos enseña Pinocho?", options: ["Que decir mentiras trae malas consecuencias y la verdad es mejor", "Que las narices largas son divertidas", "Que no hay que ir al colegio", "Que hay que nadar con ballenas"], answer: 0 }
+                ]
+            },
+            {
+                id: 6,
+                title: "Cenicienta",
+                emoji: "🥿",
+                color: "bg-purple-500",
+                borderColor: "border-purple-400",
+                text: "Cenicienta era una joven dulce y bondadosa que vivía con su madrastra y dos hermanastras, quienes la hacían limpiar la casa todo el día. Un día, llegó una invitación real: el Príncipe daría un gran baile en el palacio para encontrar esposa. Las hermanastras se vistieron con elegantes trajes, pero no dejaron ir a Cenicienta. Mientras lloraba sola, apareció su Hada Madrina. Con un toque de su varita mágica, transformó una calabaza en una hermosa carroza, unos ratoncitos en caballos y el vestido roto de Cenicienta en un deslumbrante vestido de gala con zapatillas de cristal. El Hada le advirtió: 'El hechizo terminará a medianoche'. En el baile, el Príncipe bailó sólo con Cenicienta. Cuando el reloj dio las doce campanadas, Cenicienta corrió rápidamente para salir, pero en la prisa perdió una de sus zapatillas de cristal. El Príncipe buscó por todo el reino a la dueña del zapato. Cuando probó la zapatilla en el pie de Cenicienta, le encajó perfectamente. Cenicienta y el Príncipe se casaron y vivieron muy felices.",
+                questions: [
+                    { q: "¿Cómo era el carácter de Cenicienta?", options: ["Enojona y envidiosa", "Dulce y bondadosa", "Orgullosa", "Callada y perezosa"], answer: 1 },
+                    { q: "¿Quiénes vivían con Cenicienta?", options: ["Su abuela y sus primos", "Su madrastra y sus dos hermanastras", "Sus tres hermanitos", "Sus tíos"], answer: 1 },
+                    { q: "¿Qué evento especial organizó el Príncipe?", options: ["Una carrera de caballos", "Un torneo de tenis", "Un gran baile en el palacio", "Una feria de cometas"], answer: 2 },
+                    { q: "¿Quién ayudó a Cenicienta a prepararse para el baile?", options: ["Su vecina", "Su Hada Madrina", "Un ratoncito", "La reina"], answer: 1 },
+                    { q: "¿En qué se convirtió la calabaza?", options: ["En un pastel", "En una hermosa carroza", "En una mesa de dulces", "En un vestido brillante"], answer: 1 },
+                    { q: "¿De qué eran las zapatillas mágicas de Cenicienta?", options: ["De seda suave", "De oro puro", "De cristal", "De cuero reluciente"], answer: 2 },
+                    { q: "¿A qué hora terminaba la magia del Hada?", options: ["A las diez de la noche", "A la medianoche (12:00)", "Al amanecer", "A las tres de la tarde"], answer: 1 },
+                    { q: "¿Qué objeto se le cayó a Cenicienta al salir corriendo del baile?", options: ["Un guante de seda", "Su corona", "Una zapatilla de cristal", "Un abanico"], answer: 2 },
+                    { q: "¿Cómo supo el Príncipe quién era su amada?", options: ["Por una fotografía", "Porque la zapatilla le encajó perfectamente", "Porque le reconoció la voz", "Por una carta secreta"], answer: 1 },
+                    { q: "¿Cuál es el valor principal que destaca en Cenicienta?", options: ["La bondad y la paciencia", "La mentira", "La venganza", "La prisa"], answer: 0 }
+                ]
+            },
+            {
+                id: 7,
+                title: "Blancanieves",
+                emoji: "🍎",
+                color: "bg-indigo-500",
+                borderColor: "border-indigo-400",
+                text: "Blancanieves era una linda princesa de piel blanca como la nieve y cabello negro. Su madrastra, la malvada Reina, poseía un espejo mágico al que siempre le preguntaba: 'Espejo, espejo mío, ¿quién es la más bella del reino?'. Durante años el espejo respondió que la Reina, pero un día dijo que Blancanieves era la más hermosa. Llena de envidia, la Reina ordenó que llevaran a Blancanieves al bosque. La joven princesa corrió hasta encontrar una casita pequeña donde vivían siete enanitos trabajadores de las minas: Sabio, Gruñón, Feliz, Dormilón, Timido, Tontín y Estornudo. Ellos la acogieron con cariño. La Reina descubrió que Blancanieves seguía viva, se disfrazó de anciana y le regaló una manzana envenenada. Al morderla, Blancanieves cayó en un profundo sueño. Los siete enanitos la cuidaron en un urna de cristal. Un tiempo después, un noble príncipe que pasó por el bosque quedó encantado por su belleza, la despertó del hechizo y Blancanieves vivió muy feliz en el castillo.",
+                questions: [
+                    { q: "¿Por qué llamaban a la princesa Blancanieves?", options: ["Porque le gustaba la nieve", "Porque su piel era blanca como la nieve", "Porque vestía siempre de blanco", "Porque nació en invierno"], answer: 1 },
+                    { q: "¿A quién le preguntaba la Reina quién era la más bella?", options: ["A su guardián", "A su espejo mágico", "A los pajaritos", "A un sabio"], answer: 1 },
+                    { q: "¿Por qué la Reina sintió rabia hacia Blancanieves?", options: ["Porque rompió un jarrón", "Por envidia a su belleza", "Porque se fue del castillo", "Porque no quería limpiar"], answer: 1 },
+                    { q: "¿Cuántos enanitos vivían en la casita del bosque?", options: ["Cinco", "Seis", "Siete", "Ocho"], answer: 2 },
+                    { q: "¿A qué se dedicaban los enanitos?", options: ["Eran pescadores", "Eran cocineros", "Trabajaban en las minas", "Eran agricultores"], answer: 2 },
+                    { q: "¿De qué se disfrazó la malvada Reina para engañar a Blancanieves?", options: ["De florista", "De viejita anciana", "De princesa", "De enanito"], answer: 1 },
+                    { q: "¿Qué fruta envenenada le dio la Reina a Blancanieves?", options: ["Una pera dulce", "Una manzana", "Una uva roja", "Una naranja"], answer: 1 },
+                    { q: "¿Qué le ocurrió a Blancanieves al morder la fruta?", options: ["Se convirtió en pájaro", "Cayó en un profundo sueño", "Se puso a bailar", "Perdió la voz"], answer: 1 },
+                    { q: "¿Quién despertó a Blancanieves del hechizo?", options: ["El espejo mágico", "Un noble príncipe", "El enanito Sabio", "Un Hada"], answer: 1 },
+                    { q: "¿Qué enseñanza podemos aprender?", options: ["Que la envidia es mala y la bondad siempre triunfa", "Que las manzanas verdes son mejores", "Que los espejos dicen mentiras", "Que no hay que trabajar en minas"], answer: 0 }
+                ]
+            },
+            {
+                id: 8,
+                title: "La Liebre y la Tortuga",
+                emoji: "🐢",
+                color: "bg-emerald-500",
+                borderColor: "border-emerald-400",
+                text: "En el bosque, la liebre era famosa por ser muy veloz, pero también presuntuosa. Siempre se burlaba de la lenta tortuga diciendo: '¡Nadie en el bosque puede ganarme en una carrera!'. Un día, la tranquila tortuga la desafió: 'Hagamos una carrera hasta la meta en la colina'. La liebre soltó una carcajada y aceptó la apuesta muy confiada. Todos los animales del bosque se reunieron para ver la gran competencia. Al dar la señal de salida, la liebre salió corriendo como el viento y rápidamente dejó muy atrás a la tortuga. Al verse tan adelantada y confiada en su victoria, la liebre decidió echarse a dormir una siesta bajo la sombra de un grande árbol. Mientras la liebre dormía plácidamente, la tortuga avanzó paso a paso, sin detenerse ni descansar un solo instante. Pasito a pasito, la tortuga llegó cerca de la meta. Cuando la liebre despertó asustada, corrió a toda velocidad, pero ya era demasiado tarde: ¡la perseverante tortuga cruzó la línea de meta en primer lugar! Todos los animales aplaudieron con entusiasmo.",
+                questions: [
+                    { q: "¿Cómo era la liebre del cuento?", options: ["Muy lenta y tímida", "Veloz pero presuntuosa y vanidosa", "Pequeña y miedosa", "Tranquila y silenciosa"], answer: 1 },
+                    { q: "¿De quién se burlaba siempre la liebre?", options: ["Del zorro", "De la lenta tortuga", "Del oso dormilón", "Del búho sabio"], answer: 1 },
+                    { q: "¿Qué reto propuso la tortuga?", options: ["Una carrera hasta la colina", "Un concurso de saltos", "Una competencia de natación", "Un juego de escondite"], answer: 0 },
+                    { q: "¿Qué hizo la liebre al ver que le llevaba mucha ventaja a la tortuga?", options: ["Siguió corriendo sin parar", "Se echó a dormir una siesta", "Regresó a buscar a la tortuga", "Se puso a comer hierba"], answer: 1 },
+                    { q: "¿Cómo avanzaba la tortuga durante la carrera?", options: ["Corriendo a toda prisa", "Pasito a pasito sin detenerse", "Saltando en tres patas", "Quejándose todo el tiempo"], answer: 1 },
+                    { q: "¿Se detuvo la tortuga a descansar?", options: ["Sí, durmió dos horas", "No, avanzó de forma constante", "Sí, se comió una lechuga", "Se quedó atascada en el camino"], answer: 1 },
+                    { q: "¿Qué hizo la liebre cuando despertó de la siesta?", options: ["Se volvió a dormir", "Corrió a toda velocidad al ver a la tortuga cerca de la meta", "Se fue a su casa", "Festejó antes de tiempo"], answer: 1 },
+                    { q: "¿Quién ganó la carrera?", options: ["La liebre presuntuosa", "El zorro juez", "La perseverante tortuga", "Empataron ambas"], answer: 2 },
+                    { q: "¿Cómo reaccionaron los demás animales del bosque?", options: ["Se enojaron con la tortuga", "Aplaudieron con entusiamo el triunfo de la tortuga", "Se fueron a dormir", "Hicieron otra carrera"], answer: 1 },
+                    { q: "¿Cuál es la moraleja principal de esta historia?", options: ["Que ser rápido es lo único que importa", "Que la constancia y la paciencia vencen a la arrogancia", "Que dormir la siesta siempre es bueno", "Que las tortugas corren más que las liebres"], answer: 1 }
+                ]
+            },
+            {
+                id: 9,
+                title: "El Gato con Botas",
+                emoji: "🐱",
+                color: "bg-orange-500",
+                borderColor: "border-orange-400",
+                text: "Un humilde molinero dejó al morir únicamente su gato a su hijo menor, llamado Pedro. El joven estaba desilusionado, pero el gato habló sorprendentemente y le dijo: 'No te preocupes, mi señor. Consígueme un sombrero, una bolsa y un par de botas altas, y verás que tu suerte cambiará'. Pedro le consiguió lo pedido. El astuto gato se puso las botas y atrapó un jugoso conejo en el bosque. Fue al palacio del Rey y se lo entregó como regalo de parte de su dueño, a quien llamó el 'Marqués de Carabás'. Continuó llevando ricos obsequios al Rey durante varios días. Un día, sabiendo que el Rey y su bella hija pasearían cerca del río, el gato le pidió a Pedro que se bañara en el agua. Cuando el carruaje real pasó, el gato gritó: '¡Socorro! ¡Le han robado la ropa al Marqués de Carabás!'. El Rey lo ayudó gustoso y le regaló trajes elegantes. Luego, el astuto gato engañó a un ogro rico para que se convirtiera en un pequeño ratón y se lo comió, quedándose con su gran castillo para Pedro. Así, el hijo del molinero se convirtió en príncipe.",
+                questions: [
+                    { q: "¿Qué herencia recibió el hijo menor del molinero?", options: ["Un gran molino de trigo", "Un saco de monedas de oro", "Un inteligente gato", "Un caballo blanco"], answer: 2 },
+                    { q: "¿Qué tres cosas pidió el gato a su dueño?", options: ["Una espada, un escudo y un casco", "Un sombrero, una bolsa y unas botas", "Una capa, un bastón y comida", "Un anillo y una corona"], answer: 1 },
+                    { q: "¿Con qué nombre inventado presentó el gato a su dueño ante el Rey?", options: ["Príncipe del Bosque", "Marqués de Carabás", "Duque de las Flores", "Conde de las Botas"], answer: 1 },
+                    { q: "¿Qué regalo le llevó el gato al Rey en su primera visita?", options: ["Un conejo jugoso", "Una cesta de manzanas", "Un pastel de crema", "Una joya reluciente"], answer: 0 },
+                    { q: "¿Dónde le pidió el gato a su dueño que se metiera cuando pasaba el carruaje real?", options: ["Detrás de un árbol", "En el río", "Dentro de una cueva", "En el granero"], answer: 1 },
+                    { q: "¿Qué mentira dijo el gato al Rey sobre la ropa de su dueño?", options: ["Que se la había comido un perro", "Que se le cayó al agua", "Que unos ladrones se la habían robado", "Que se le había quemado"], answer: 2 },
+                    { q: "¿Cómo vistió el Rey a Pedro tras rescatarlo del río?", options: ["Con ropa de campesino", "Con trajes lujosos y elegantes", "Con armadura de caballero", "Con una capa simple"], answer: 1 },
+                    { q: "¿En qué animal transformó el gato al ogro para vencerlo?", options: ["En un león", "En un perro pequeñito", "En un ratón", "En un pato"], answer: 2 },
+                    { q: "¿Qué hizo el gato cuando el ogro se transformó en ratón?", options: ["Jugó con él", "Se lo comió de un bocado", "Lo encerró en una caja", "Lo dejó escapar"], answer: 1 },
+                    { q: "¿Qué virtud demuestra el Gato con Botas en esta historia?", options: ["La inteligencia, astucia y fidelidad a su dueño", "La fuerza física", "La velocidad para correr", "La pereza"], answer: 0 }
+                ]
+            },
+            {
+                id: 10,
+                title: "Hansel y Gretel",
+                emoji: "🍬",
+                color: "bg-cyan-500",
+                borderColor: "border-cyan-400",
+                text: "Hansel y Gretel eran dos hermanitos que vivían cerca de un frondoso bosque con su padre. Como eran muy pobres, un día se perdieron en la profundidad del bosque mientras buscaban leña. Para no perderse al regresar, Hansel fue dejando un caminito con migajitas de pan. Lamentablemente, los pajaritos del bosque se comieron todas las migas y los niños no pudieron encontrar el camino de regreso a casa. Tras caminar mucho tiempo, llegaron a un claro del bosque y descubrieron una casa maravillosa hecha enteramente de galletas, caramelos y chocolates. Con mucha hambre, los niños comenzaron a comer deliciosos pedazos del tejado y las ventanas. De repente salío una anciana que los invitó a pasar. Sin embargo, la anciana era una malvada bruja que encerró a Hansel en una jaula. La astuta Gretel esperó el momento oportuno y, con un empujón valiente, encerró a la bruja en el horno. Gretel liberó a su hermano Hansel, encontraron un cofre lleno de perlas y piedras preciosas, y gracias a un amable patito cruzaron el río y regresaron felizmente a los brazos de su querido padre.",
+                questions: [
+                    { q: "¿Quiénes eran Hansel y Gretel?", options: ["Dos amigos del colegio", "Dos hermanitos valientes", "Dos príncipes del palacio", "Dos duendecillos del bosque"], answer: 1 },
+                    { q: "¿Qué usó Hansel para marcar el camino de regreso?", options: ["Piedritas de colores", "Migajitas de pan", "Hojas secas", "Cintas rojas"], answer: 1 },
+                    { q: "¿Por qué no pudieron seguir el camino de regreso?", options: ["Porque la lluvia lo borró", "Porque los pajaritos se comieron las migas de pan", "Porque se hizo muy de noche", "Porque el viento se las llevó"], answer: 1 },
+                    { q: "¿De qué estaba hecha la casita sorprendente que encontraron?", options: ["De madera y piedra", "De galletas, caramelos y chocolates", "De paja dorada", "De cristal transparente"], answer: 1 },
+                    { q: "¿Quién vivía en la casa de dulces?", options: ["Un Hada buena", "Una malvada bruja", "Un duende risueño", "Un gigante amable"], answer: 1 },
+                    { q: "¿Dónde encerró la bruja al pequeño Hansel?", options: ["En el sótano", "En una jaula", "En la torre", "En un armario"], answer: 1 },
+                    { q: "¿Cómo demostró Gretel su valentía?", options: ["Salió corriendo sola", "Empujó a la bruja para salvar a su hermano", "Se puso a llorar", "Le dio caramelos a la bruja"], answer: 1 },
+                    { q: "¿Qué valioso tesoro encontraron en la casa de la bruja?", options: ["Un cofre con perlas y piedras preciosas", "Un libro mágico", "Un saco de harina", "Una varita brillante"], answer: 0 },
+                    { q: "¿Quién los ayudó a cruzar el río para volver a casa?", options: ["Un barco grande", "Un amable patito", "Un puente de madera", "Un pez dorado"], answer: 1 },
+                    { q: "¿Qué importante enseñanza transmite este cuento?", options: ["Que el amor entre hermanos y la valentía ayudan a superar los problemas", "Que es bueno comer casitas de dulce", "Que hay que dejar migas de pan en el bosque", "Que los pájaros no comen pan"], answer: 0 }
+                ]
+            }
+        ];
+
+        // ESTADO GLOBAL DE LA APLICACIÓN
+        let currentStory = null;
+        let userAnswers = {}; // { qIndex: selectedOptionIndex }
+        let completedStories = JSON.parse(localStorage.getItem('completed_stories_v1') || '{}');
+
+        // EFECTOS DE SONIDO SINTETIZADOS (Web Audio API)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            try {
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'correct') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                    osc.frequency.exponentialRampToValueAtTime(659.25, audioCtx.currentTime + 0.15); // E5
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.3);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, audioCtx.currentTime); // A3
+                    osc.frequency.linearRampToValueAtTime(164.81, audioCtx.currentTime + 0.2); // E3
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.25);
+                } else if (type === 'win') {
+                    const notes = [440, 554.37, 659.25, 880];
+                    notes.forEach((freq, i) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.connect(g);
+                        g.connect(audioCtx.destination);
+                        o.frequency.value = freq;
+                        g.gain.setValueAtTime(0.15, audioCtx.currentTime + i * 0.1);
+                        g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.1 + 0.25);
+                        o.start(audioCtx.currentTime + i * 0.1);
+                        o.stop(audioCtx.currentTime + i * 0.1 + 0.25);
+                    });
+                }
+            } catch(e) {
+                console.log("Audio non disponible", e);
+            }
+        }
+
+        // INICIALIZACION
+        window.addEventListener('DOMContentLoaded', () => {
+            renderMenu();
+            updateGlobalStats();
+        });
+
+        // MOSTRAR EL MENU PRINCIPAL
+        function showMenu() {
+            document.getElementById('menuView').classList.remove('hidden');
+            document.getElementById('readingView').classList.add('hidden');
+            document.getElementById('summaryView').classList.add('hidden');
+            renderMenu();
+            updateGlobalStats();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // RENDERIZAR LAS TARJETAS DE LOS 10 CUENTOS
+        function renderMenu() {
+            const grid = document.getElementById('storiesGrid');
+            grid.innerHTML = '';
+
+            storiesData.forEach((story) => {
+                const isDone = completedStories[story.id] !== undefined;
+                const starsCount = completedStories[story.id] || 0;
+
+                let starsHtml = '';
+                if (isDone) {
+                    starsHtml = `<div class="text-amber-500 font-bold text-lg mt-1">`;
+                    for(let i=1; i<=3; i++) {
+                        starsHtml += i <= starsCount ? '⭐' : '☆';
+                    }
+                    starsHtml += `</div>`;
+                }
+
+                const card = document.createElement('div');
+                card.className = `bg-white rounded-3xl p-5 shadow-lg border-4 ${story.borderColor} flex flex-col justify-between items-center text-center cursor-pointer card-bounce transition duration-300`;
+                card.onclick = () => openStory(story.id);
+
+                card.innerHTML = `
+                    <div class="w-full flex justify-between items-center mb-2">
+                        <span class="bg-slate-100 text-slate-700 font-bold px-3 py-1 rounded-full text-sm font-fredoka">
+                            Cuento #${story.id}
+                        </span>
+                        ${isDone ? '<span class="bg-emerald-100 text-emerald-700 font-bold text-xs px-2.5 py-1 rounded-full font-fredoka">¡Completado! ✔️</span>' : ''}
+                    </div>
+
+                    <div class="text-6xl my-3 transform transition hover:scale-110">
+                        ${story.emoji}
+                    </div>
+
+                    <h3 class="text-2xl font-bold font-fredoka text-slate-800 mb-1">
+                        ${story.title}
+                    </h3>
+
+                    <p class="text-sm text-slate-500 font-medium mb-3">10 Preguntas de comprensión</p>
+
+                    ${starsHtml}
+
+                    <button class="mt-3 w-full bg-slate-800 hover:bg-brandPurple text-white font-fredoka text-lg py-2.5 px-4 rounded-2xl shadow transition flex items-center justify-center gap-2">
+                        📖 ¡Leer Cuento!
+                    </button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // ABRIR UN CUENTO SELECCIONADO
+        function openStory(id) {
+            currentStory = storiesData.find(s => s.id === id);
+            userAnswers = {};
+
+            document.getElementById('menuView').classList.add('hidden');
+            document.getElementById('summaryView').classList.add('hidden');
+            document.getElementById('readingView').classList.remove('hidden');
+
+            // Cargar datos en la vista de lectura
+            document.getElementById('storyBadge').innerText = `Cuento ${currentStory.id} de 10`;
+            document.getElementById('storyEmoji').innerText = currentStory.emoji;
+            document.getElementById('storyTitle').innerText = currentStory.title;
+            document.getElementById('storyContent').innerText = currentStory.text;
+            document.getElementById('currentScore').innerText = '0';
+
+            renderQuestions();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // RENDERIZAR LAS 10 PREGUNTAS DEL CUENTO ACTIVO
+        function renderQuestions() {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+
+            currentStory.questions.forEach((qItem, qIdx) => {
+                const qBox = document.createElement('div');
+                qBox.className = `p-5 md:p-6 rounded-2xl border-2 border-slate-200 bg-slate-50 space-y-4 id="qbox-${qIdx}"`;
+
+                const letters = ['A', 'B', 'C', 'D'];
+
+                let optionsHtml = qItem.options.map((opt, optIdx) => `
+                    <button 
+                        id="btn-${qIdx}-${optIdx}"
+                        onclick="selectOption(${qIdx}, ${optIdx})"
+                        class="option-btn w-full text-left bg-white hover:bg-amber-50 border-2 border-slate-300 text-slate-800 p-3.5 rounded-xl flex items-center gap-3 shadow-sm font-medium">
+                        <span class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold flex items-center justify-center text-sm border border-slate-300 font-fredoka flex-shrink-0">
+                            ${letters[optIdx]}
+                        </span>
+                        <span class="flex-grow">${opt}</span>
+                        <span id="icon-${qIdx}-${optIdx}" class="text-xl"></span>
+                    </button>
+                `).join('');
+
+                qBox.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <span class="bg-brandPurple text-white font-fredoka font-bold rounded-xl px-3 py-1 text-base flex-shrink-0">
+                            ${qIdx + 1}
+                        </span>
+                        <h4 class="question-text font-bold text-slate-800 font-fredoka">
+                            ${qItem.q}
+                        </h4>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+                        ${optionsHtml}
+                    </div>
+                    <div id="feedback-${qIdx}" class="hidden text-base font-bold font-fredoka p-3 rounded-xl"></div>
+                `;
+
+                container.appendChild(qBox);
+            });
+        }
+
+        // MARCAR UNA OPCION SELECCIONADA POR EL NIÑO
+        function selectOption(qIndex, optionIndex) {
+            userAnswers[qIndex] = optionIndex;
+
+            // Actualizar botones visualmente
+            const totalOptions = currentStory.questions[qIndex].options.length;
+            for (let i = 0; i < totalOptions; i++) {
+                const btn = document.getElementById(`btn-${qIndex}-${i}`);
+                if (i === optionIndex) {
+                    btn.classList.remove('bg-white', 'border-slate-300');
+                    btn.classList.add('bg-amber-100', 'border-amber-500', 'ring-2', 'ring-amber-400');
+                } else {
+                    btn.classList.remove('bg-amber-100', 'border-amber-500', 'ring-2', 'ring-amber-400');
+                    btn.classList.add('bg-white', 'border-slate-300');
+                }
+            }
+
+            // Actualizar contador parcial
+            const answeredCount = Object.keys(userAnswers).length;
+            document.getElementById('currentScore').innerText = `${answeredCount}`;
+        }
+
+        // COMPROBAR Y CALCULAR EL RESULTADO DE LAS 10 PREGUNTAS
+        function calculateStoryResult() {
+            const totalQuestions = currentStory.questions.length;
+            const answeredCount = Object.keys(userAnswers).length;
+
+            if (answeredCount < totalQuestions) {
+                alert(`¡Hola! Aún te faltan por responder ${totalQuestions - answeredCount} preguntas. ¡Revisa con cuidado! 😊`);
+                return;
+            }
+
+            let score = 0;
+
+            // Evaluar cada pregunta
+            currentStory.questions.forEach((qItem, qIdx) => {
+                const selected = userAnswers[qIdx];
+                const isCorrect = selected === qItem.answer;
+
+                if (isCorrect) score++;
+
+                // Deshabilitar y mostrar estado
+                qItem.options.forEach((_, optIdx) => {
+                    const btn = document.getElementById(`btn-${qIdx}-${optIdx}`);
+                    btn.disabled = true;
+
+                    if (optIdx === qItem.answer) {
+                        btn.classList.remove('bg-white', 'bg-amber-100', 'border-slate-300', 'border-amber-500');
+                        btn.classList.add('bg-emerald-100', 'border-emerald-500', 'text-emerald-900', 'font-bold');
+                        document.getElementById(`icon-${qIdx}-${optIdx}`).innerText = '✅';
+                    } else if (optIdx === selected && !isCorrect) {
+                        btn.classList.remove('bg-white', 'bg-amber-100', 'border-slate-300', 'border-amber-500');
+                        btn.classList.add('bg-red-100', 'border-red-400', 'text-red-900');
+                        document.getElementById(`icon-${qIdx}-${optIdx}`).innerText = '❌';
+                    }
+                });
+
+                // Feedback escrito por pregunta
+                const fb = document.getElementById(`feedback-${qIdx}`);
+                fb.classList.remove('hidden');
+                if (isCorrect) {
+                    fb.className = 'text-base font-bold font-fredoka p-3 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-2';
+                    fb.innerHTML = '✨ ¡Excelente! Respuesta correcta.';
+                } else {
+                    fb.className = 'text-base font-bold font-fredoka p-3 rounded-xl bg-rose-100 text-rose-800 border border-rose-300 flex items-center gap-2';
+                    fb.innerHTML = '💡 Casi lo logras. ¡La opción verde era la correcta!';
+                }
+            });
+
+            // Sonido de victoria o ánimo
+            if (score >= 7) {
+                playSound('win');
+            } else {
+                playSound('correct');
+            }
+
+            // Calcular estrellas
+            let starsEarned = 1;
+            if (score === 10) starsEarned = 3;
+            else if (score >= 7) starsEarned = 2;
+
+            // Guardar progreso localmente
+            completedStories[currentStory.id] = Math.max(completedStories[currentStory.id] || 0, starsEarned);
+            localStorage.setItem('completed_stories_v1', JSON.stringify(completedStories));
+
+            // Transición a la vista de resumen después de breve pausa para ver respuestas
+            setTimeout(() => {
+                showSummary(score, starsEarned);
+            }, 1800);
+        }
+
+        // MOSTRAR VISTA RESUMEN CON ESTRELLAS Y FELICITACION
+        function showSummary(score, stars) {
+            document.getElementById('readingView').classList.add('hidden');
+            document.getElementById('summaryView').classList.remove('hidden');
+
+            const starsDisplay = document.getElementById('starsDisplay');
+            let starsHtml = '';
+            for(let i = 1; i <= 3; i++) {
+                starsHtml += i <= stars ? '⭐' : '☆';
+            }
+            starsDisplay.innerHTML = starsHtml;
+
+            const summaryTitle = document.getElementById('summaryTitle');
+            const summaryText = document.getElementById('summaryText');
+
+            if (score === 10) {
+                summaryTitle.innerText = "¡Puntaje Perfecto! 🏆";
+                summaryText.innerText = `¡Felicitaciones! Respondiste las 10 preguntas correctamente.`;
+            } else if (score >= 7) {
+                summaryTitle.innerText = "¡Gran Trabajo! 🌟";
+                summaryText.innerText = `Obtuviste ${score} de 10 respuestas correctas. ¡Sigue así!`;
+            } else {
+                summaryTitle.innerText = "¡Buen Intento! 💪";
+                summaryText.innerText = `Obtuviste ${score} de 10 respuestas correctas. ¡Puedes volver a leer para mejorar!`;
+            }
+
+            updateGlobalStats();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ACTUALIZAR ESTADISTICAS GLOBALES EN EL HEADER
+        function updateGlobalStats() {
+            const completedKeys = Object.keys(completedStories);
+            let totalStars = 0;
+            completedKeys.forEach(k => {
+                totalStars += completedStories[k];
+            });
+
+            document.getElementById('totalStars').innerText = totalStars;
+            document.getElementById('completedCount').innerText = completedKeys.length;
+
+            if (completedKeys.length > 0) {
+                document.getElementById('statsNav').classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
